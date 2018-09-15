@@ -1,0 +1,71 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+namespace ConsoleApplication2
+{
+    
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            
+            PerformanceCounter ramUse = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+            PerformanceCounter cpuTotal = new PerformanceCounter("Процессор", "% загруженности процессора", "_Total");
+            int answerVal = 1;
+            Console.WriteLine("Choose intrface:\n" + "1 - Only CPU and Ram (in percents)\t" + "2 - Table of all processes\t" + "3 - Both  previous");
+            answerVal = Convert.ToInt32(Console.ReadLine());
+            while (true)
+            {
+                Process[] proc = Process.GetProcesses();
+                if (answerVal != 2)
+                {
+                    print(cpuTotal.NextValue(), "Processor");
+                    print(ramUse.NextValue(), "Ram");
+                }
+                if (answerVal != 1)
+                {
+                    printTableHead();
+                    for (int i = 0; i < proc.Length; i++)
+                    {
+                        Process a = Process.GetProcesses()[i];
+                        PerformanceCounter ramCounter = new PerformanceCounter("Process", "Working Set", a.ProcessName);
+                        PerformanceCounter cpuCounter = new PerformanceCounter("Process", "% Processor Time", a.ProcessName);
+
+                        double ram = ramCounter.NextValue();
+                        double cpu = cpuCounter.NextValue();
+                        if (ram / (1024 * 1024) > 1)
+                            Console.WriteLine("| {0,-26} |  {1,-5:f1} MB  |  {2:P1}  |", proc[i].ProcessName, ram / (1024 * 1024), cpu);
+                    }
+                }
+                System.Threading.Thread.Sleep(3000);
+                Console.Clear();
+            }
+        }
+
+        static void printTableHead()
+        {
+            Console.Write("\n|\t     Name\t     |    RAM     |  CPU   |\n");
+            Console.Write("----------------------------------------------------\n");
+        }
+        static void print(double value, string name)
+        {
+            double space = 100 - value;
+            double temp = value;
+            Console.Write("{0,-10} [",name);
+            for (; temp >= 0; temp--)
+            {
+                Console.Write("|");
+            }
+            for (; space > 0; space--)
+            {
+                Console.Write(" ");
+            }
+            Console.Write("] {0:f1}%\n",value);
+        }
+       
+    }
+}
